@@ -611,6 +611,10 @@ class BpodBase(object):
                                 debug_message="Adding {} matrix states".format(
                                     transition_matrix_name))
                         if transition_event_found:
+                            # Call callback of new state
+                            callback = sma.callbacks.get(sma.current_state)
+                            if callback:
+                                callback()
                             break
 
                 logger.debug("States indexes: %s", current_trial.states)
