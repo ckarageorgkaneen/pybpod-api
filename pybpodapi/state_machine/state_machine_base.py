@@ -86,10 +86,12 @@ class StateMachineBase(object):
         # output actions
         self.output_matrix = [[] for i in range(self.hardware.max_states)]
 
+        self.callbacks = {}  # type: dict(int -> function)
+
         self.is_running = False
 
     def add_state(
-        self, state_name, state_timer=0, state_change_conditions={}, output_actions=()
+        self, state_name, state_timer=0, state_change_conditions={}, output_actions=(), callback=None
     ):
         """
         Adds a state to an existing state matrix.
@@ -246,6 +248,10 @@ class StateMachineBase(object):
                 self.global_timers.cancels_matrix[output_value - 1] = 1
 
             self.output_matrix[state_name_idx].append((output_code, output_value))
+
+        if callback is not None and not callable(callback):
+            raise SMAError(f'Error adding callback: {callback} is not callable.')
+        self.callbacks[state_name_idx] = callback
 
         self.total_states_added += 1
 
