@@ -19,7 +19,7 @@ my_bpod.send_state_machine(sma)
 
 def worker(data):
     time.sleep(5)
-    my_bpod.trigger_event_by_name(Bpod.Events.Serial2_3)
+    my_bpod.trigger_event_by_name(Bpod.Events.Serial2_3, None)
 
 
 executor = ThreadPoolExecutor(max_workers=1)
