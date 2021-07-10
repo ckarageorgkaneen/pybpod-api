@@ -494,7 +494,7 @@ class Emulator:
                 channel_value_offset
             self._manual_override_events.put(new_event)
 
-    def serial_override(self, channel_number, channel_value):
+    def override_output_state(self, channel_number, channel_value):
         self._state.output[channel_number] = channel_value
 
     def add_manual_override_event(self, event_code):

@@ -465,7 +465,7 @@ class BpodBase(object):
 
     def trigger_output(self, channel_number, value):
         if self._emulator:
-            self._emulator.serial_override(channel_number, int(value))
+            self._emulator.override_output_state(channel_number, int(value))
         else:
             return self._bpodcom_override_digital_hardware_state(channel_number, value)
 
@@ -477,7 +477,7 @@ class BpodBase(object):
 
     def trigger_serial(self, channel_number, value):
         if self._emulator:
-            self._emulator.serial_override(channel_number, value)
+            self._emulator.override_output_state(channel_number, value)
         else:
             return self._bpodcom_send_byte_to_hardware_serial(channel_number, value)
 
