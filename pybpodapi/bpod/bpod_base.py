@@ -445,9 +445,11 @@ class BpodBase(object):
     def echo_softcode(self, softcode):
         return self._bpodcom_echo_softcode(softcode)
 
-    def trigger_event_by_name(self, event_name):
-        if self._emulator:
-            self._emulator.add_manual_override_event(event_name)
+    def trigger_event_by_name(self, event_name, event_data):
+        if event_name not in self.hardware.channels.event_names:
+            raise BpodErrorException(f'Unknown event name: {event_name}')
+        event_index = self.hardware.channels.event_names.index(event_name)
+        self.trigger_event(event_index, event_data)
 
     def trigger_event(self, event_index, event_data):
         if self._emulator:

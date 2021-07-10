@@ -497,19 +497,11 @@ class Emulator:
     def serial_override(self, channel_number, channel_value):
         self._state.output[channel_number] = channel_value
 
-    def add_manual_override_event(self, event):
-        hardware_channels = self._hardware.channels
-        if isinstance(event, int):
-            try:
-                hardware_channels.get_event_name(event)
-            except IndexError as e:
-                raise EmulatorError(str(e))
-            else:
-                event_code = event
-        else:
-            if event not in hardware_channels.event_names:
-                raise EmulatorError('unknown event name')
-            event_code = hardware_channels.event_names.index(event)
+    def add_manual_override_event(self, event_code):
+        try:
+            self._hardware.channels.get_event_name(event_code)
+        except IndexError as e:
+            raise EmulatorError(str(e))
         self._manual_override_events.put(event_code)
 
     def log_state_machine_info(self):
