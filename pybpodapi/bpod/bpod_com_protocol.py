@@ -46,13 +46,13 @@ class BpodCOMProtocol(BpodBase):
         super(BpodCOMProtocol, self).open()
         self.bpod_com_ready = True
 
-    def close(self):
+    def close(self, ignore_emulator=False):
         if self.bpod_com_ready:
-            super(BpodCOMProtocol, self).close()
+            super(BpodCOMProtocol, self).close(ignore_emulator=ignore_emulator)
             self._arcom.close()
             self.bpod_com_ready = False
 
-    def manual_override(self, channel_type, channel_name, channel_number, value):
+    def manual_override(self, channel_type, channel_name, channel_number, value, ignore_emulator=False):
         """
         Manually override a Bpod channel
 
@@ -66,23 +66,23 @@ class BpodCOMProtocol(BpodBase):
             try:
                 channel_number = self.hardware.channels.input_channel_names.index(
                     input_channel_name)
-                self.trigger_input(channel_number, value)
+                self.trigger_input(channel_number, value, ignore_emulator=ignore_emulator)
             except:
                 raise BpodErrorException(
                     'Error using manual_override: {name} is not a valid channel name.'.format(name=channel_name))
 
         elif channel_type == ChannelType.OUTPUT:
             if channel_name == 'SoftCode':
-                self.trigger_softcode(value)
+                self.trigger_softcode(value, ignore_emulator=ignore_emulator)
             elif channel_name == 'Serial':
-                self.trigger_serial(channel_number, value)
+                self.trigger_serial(channel_number, value, ignore_emulator=ignore_emulator)
             else:
                 output_channel_name = channel_name + \
                     str(channel_number)
                 try:
                     channel_number = self.hardware.channels.output_channel_names.index(
                         output_channel_name)
-                    self.trigger_output(channel_number, value)
+                    self.trigger_output(channel_number, value, ignore_emulator=ignore_emulator)
                 except:
                     raise BpodErrorException('Error using manual_override: {name} is not a valid channel name.'.format(
                         name=output_channel_name))

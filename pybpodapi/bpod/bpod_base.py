@@ -175,7 +175,7 @@ class BpodBase(object):
 
         return self
 
-    def close(self):
+    def close(self, ignore_emulator=False):
         """
         Close connection with Bpod
         """
@@ -185,7 +185,7 @@ class BpodBase(object):
             for varname in settings.PYBPOD_VARSNAMES:
                 self.session += ValueMessage(varname, getattr(settings, varname))
 
-        if self._emulator is None:
+        if self._emulator is None or ignore_emulator:
             self._bpodcom_disconnect()
 
         del self._session
@@ -214,7 +214,7 @@ class BpodBase(object):
     def register_value(self, name, value):
         self._session += ValueMessage(name, value)
 
-    def send_state_machine(self, sma, run_asap=None):
+    def send_state_machine(self, sma, run_asap=None, ignore_emulator=False):
         """
         Builds message and sends state machine to Bpod
 
@@ -230,7 +230,7 @@ class BpodBase(object):
 
         sma.update_state_numbers()
 
-        if self._emulator:
+        if self._emulator and not ignore_emulator:
             self._emulator.set_state_machine(sma)
             self._emulator.log_state_machine_info()
         else:
@@ -445,38 +445,38 @@ class BpodBase(object):
     def echo_softcode(self, softcode):
         return self._bpodcom_echo_softcode(softcode)
 
-    def trigger_event_by_name(self, event_name, event_data):
+    def trigger_event_by_name(self, event_name, event_data, ignore_emulator=False):
         if event_name not in self.hardware.channels.event_names:
             raise BpodErrorException(f'Unknown event name: {event_name}')
         event_index = self.hardware.channels.event_names.index(event_name)
-        self.trigger_event(event_index, event_data)
+        self.trigger_event(event_index, event_data, ignore_emulator=ignore_emulator)
 
-    def trigger_event(self, event_index, event_data):
-        if self._emulator:
+    def trigger_event(self, event_index, event_data, ignore_emulator=False):
+        if self._emulator and not ignore_emulator:
             self._emulator.add_manual_override_event(event_index)
         else:
             return self._bpodcom_manual_override_exec_event(event_index, event_data)
 
-    def trigger_input(self, channel_number, value):
-        if self._emulator:
+    def trigger_input(self, channel_number, value, ignore_emulator=False):
+        if self._emulator and not ignore_emulator:
             self._emulator.override_input_state(channel_number, int(value))
         else:
             return self._bpodcom_override_input_state(channel_number, value)
 
-    def trigger_output(self, channel_number, value):
-        if self._emulator:
+    def trigger_output(self, channel_number, value, ignore_emulator=False):
+        if self._emulator and not ignore_emulator:
             self._emulator.override_output_state(channel_number, int(value))
         else:
             return self._bpodcom_override_digital_hardware_state(channel_number, value)
 
-    def trigger_softcode(self, softcode):
-        if self._emulator:
+    def trigger_softcode(self, softcode, ignore_emulator=False):
+        if self._emulator and not ignore_emulator:
             self.softcode_handler_function(softcode)
         else:
             return self._bpodcom_send_softcode(softcode)
 
-    def trigger_serial(self, channel_number, value):
-        if self._emulator:
+    def trigger_serial(self, channel_number, value, ignore_emulator=False):
+        if self._emulator and not ignore_emulator:
             self._emulator.override_output_state(channel_number, value)
         else:
             return self._bpodcom_send_byte_to_hardware_serial(channel_number, value)

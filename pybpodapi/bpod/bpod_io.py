@@ -33,11 +33,11 @@ class BpodIO(BpodCOMProtocolModules):
     def create_session(self):
         return Session(os.path.join(self.workspace_path, self.session_name)+'.csv') if self.workspace_path else Session()
 
-    def close(self):
+    def close(self, ignore_emulator=False):
         """
         Close connection with Bpod
         """
-        super(BpodIO, self).close()
+        super(BpodIO, self).close(ignore_emulator=ignore_emulator)
 
     def __del__(self):
         if hasattr(self, 'session') and self.session:
