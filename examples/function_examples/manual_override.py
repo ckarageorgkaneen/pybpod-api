@@ -11,10 +11,6 @@ import time
 
 from pybpodapi.protocol import Bpod
 
-import examples.settings as settings
-
-
-
 my_bpod = Bpod()
 
 wait_active_time_ms = 2
