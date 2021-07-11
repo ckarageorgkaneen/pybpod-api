@@ -102,13 +102,14 @@ time.sleep(1)  # Wait 1s
 
 ### PORT 3 Wire ###
 
-print("Set Wire output ch3 to high")
-my_bpod.manual_override(Bpod.ChannelTypes.OUTPUT, Bpod.ChannelNames.WIRE, channel_number=3, value=1)
-time.sleep(0.01)  # Wait 10ms
+if my_bpod.hardware.machine_type == 1:
+	print("Set Wire output ch3 to high")
+	my_bpod.manual_override(Bpod.ChannelTypes.OUTPUT, Bpod.ChannelNames.WIRE, channel_number=3, value=1)
+	time.sleep(0.01)  # Wait 10ms
 
-print("Set Wire output ch3 to low")
-my_bpod.manual_override(Bpod.ChannelTypes.OUTPUT, Bpod.ChannelNames.WIRE, channel_number=3, value=0)
-time.sleep(1)  # Wait 1s
+	print("Set Wire output ch3 to low")
+	my_bpod.manual_override(Bpod.ChannelTypes.OUTPUT, Bpod.ChannelNames.WIRE, channel_number=3, value=0)
+	time.sleep(1)  # Wait 1s
 
 ### PORT 2 Serial ###
 
