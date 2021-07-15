@@ -132,9 +132,15 @@ class ArCOM(object):
         return message_bytes
 
     def read_char(self):
-        message_bytes = self.serial_object.read(ArduinoTypes.CHAR.size)
-
-        return message_bytes.decode("utf-8")
+        char = None
+        while char is None:
+            message_bytes = self.serial_object.read(ArduinoTypes.CHAR.size)
+            try:
+                char = message_bytes.decode("utf-8")
+            except UnicodeError:
+                # Handle junk bytes (e.g. 0xde)
+                pass
+        return char
 
     def read_uint8(self):
         message_bytes = self.serial_object.read(ArduinoTypes.UINT8.size)
