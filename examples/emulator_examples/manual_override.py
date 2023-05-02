@@ -1,6 +1,6 @@
 import time
 from pybpodapi.protocol import Bpod
-import examples.emulator_settings as settings
+from confapp import conf as settings
 my_bpod = Bpod(emulator_mode=True)
 wait_active_time_ms = 2
 # INPUTS - BNC (1, 2)
