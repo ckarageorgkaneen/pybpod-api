@@ -1,7 +1,6 @@
 import datetime, time, logging
 
-PYBPOD_API_LOG_LEVEL = logging.INFO
-PYBPOD_API_LOG_LEVEL = logging.DEBUG #logging.WARNING; logging.DEBUG
+PYBPOD_API_LOG_LEVEL = logging.INFO #logging.WARNING; logging.DEBUG
 PYBPOD_API_LOG_FILE  = 'pybpod-api.log'
 
 
