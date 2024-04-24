@@ -68,13 +68,14 @@ class BpodBase(object):
         self.baudrate = settings.PYBPOD_BAUDRATE
         self.sync_channel = sync_channel if sync_channel is not None else settings.PYBPOD_SYNC_CHANNEL
         self.sync_mode = sync_mode if sync_mode is not None else settings.PYBPOD_SYNC_MODE
-        self.net_port = net_port if net_port is not None else settings.PYBPOD_NET_PORT
         self._hardware = Hardware()    # type: Hardware
         if emulator_mode:
+            self.net_port = None
             self._emulator = Emulator(self._hardware)
             self.__initialize_input_command_handler()
             self.bpod_modules = self._emulator.bpod_modules
         else:
+            self.net_port = net_port if net_port is not None else settings.PYBPOD_NET_PORT
             self._emulator = None
             self.bpod_modules = None          # type: BpodModules
         self.bpod_start_timestamp = None
