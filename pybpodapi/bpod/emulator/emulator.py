@@ -17,15 +17,6 @@ from .state import State
 
 from pybpodapi.bpod_modules.bpod_modules import BpodModules
 
-try:
-    from AnyQt import QtCore
-    from AnyQt import QtNetwork
-    from PyQt5 import sip
-except ImportError:
-    GUI_ENABLED = False
-else:
-    GUI_ENABLED = True
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,19 +69,17 @@ class Emulator:
     _CONDITION_OFFSET = None
     _JUMP_OFFSET = None
     _CONDITION_EVENT_NAME = None
-    _SOCKET_WAIT_FOR_CONNECTED_TIMEOUT = 500
 
     def __init__(self, hardware):
         self._init_hardware(hardware)
         self._state = State(self.hardware)
         self._manual_override_events = queue.Queue()
-        self._socket = None
-
-    @property
-    def socket(self):
-        if self._socket is None or sip.isdeleted(self._socket):
-            self._socket = QtNetwork.QLocalSocket()
-        return self._socket
+        try:
+            from pybpod_gui_plugin_emulator.emulator_gui_client import EmulatorGUIClient
+        except ImportError:
+            self._gui_plugin_emulator_client = None
+        else:
+            self._gui_plugin_emulator_client = EmulatorGUIClient(self.hardware)
 
     @property
     def hardware(self):
@@ -228,32 +217,6 @@ class Emulator:
         this_channel = self._state_machine.global_timers.channels[channel]
         if this_channel < FINAL_CHANNEL:
             self._state.output[this_channel] = on
-
-    def _send_output_to_gui_server(self, channel_number, value):
-        self.socket.connectToServer(
-            self.GUI_PLUGIN_SERVER_NAME,
-            QtCore.QIODevice.WriteOnly)
-        if self.socket.waitForConnected(
-                self._SOCKET_WAIT_FOR_CONNECTED_TIMEOUT):
-            output_channel_name = \
-                self._hardware.channels.output_channel_names[
-                    channel_number]
-            message = f'{output_channel_name}:{value}'
-            self.socket.write(message.encode('utf-8'))
-            if not self.socket.waitForBytesWritten(2000):
-                error_message = \
-                    f'Could not connect to server: {self.socket.errorString()}'
-                logger.error(error_message)
-                raise EmulatorError(error_message)
-            self.socket.disconnectFromServer()
-        elif self.socket.error() != \
-                QtNetwork.QAbstractSocket.HostNotFoundError:
-            error_message = \
-                f'Could not connect to server: {self.socket.errorString()}'
-            logger.error(error_message)
-            raise EmulatorError(error_message)
-        else:
-            logger.error('Emulator gui plugin server is down.')
 
     def set_state_machine(self, state_machine):
         self._state_machine = state_machine
@@ -438,8 +401,8 @@ class Emulator:
                     self._state_machine.output_matrix[state]:
                 if new_output_channel not in self._state.output:
                     self._state.output[new_output_channel] = new_output_value
-                if GUI_ENABLED:
-                    self._send_output_to_gui_server(
+                if self._gui_plugin_emulator_client:
+                    self._gui_plugin_emulator_client.send(
                         new_output_channel, new_output_value)
                 logger.debug('State mirrored.')
 
