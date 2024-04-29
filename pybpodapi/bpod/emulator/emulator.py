@@ -74,12 +74,6 @@ class Emulator:
         self._init_hardware(hardware)
         self._state = State(self.hardware)
         self._manual_override_events = queue.Queue()
-        try:
-            from pybpod_gui_plugin_emulator.emulator_gui_client import EmulatorGUIClient
-        except ImportError:
-            self._gui_plugin_emulator_client = None
-        else:
-            self._gui_plugin_emulator_client = EmulatorGUIClient(self.hardware)
 
     @property
     def hardware(self):
@@ -394,16 +388,12 @@ class Emulator:
         if state is None:
             self._state.clear_input()
             self._state.clear_output()
-            # TODO: Do the BpodSystem.RefreshGUI equivalent
         else:
-            # Add outputs that have not been overridden to output state
-            for new_output_channel, new_output_value in \
+            for output_channel, output_value in \
                     self._state_machine.output_matrix[state]:
-                if new_output_channel not in self._state.output:
-                    self._state.output[new_output_channel] = new_output_value
-                if self._gui_plugin_emulator_client:
-                    self._gui_plugin_emulator_client.send(
-                        new_output_channel, new_output_value)
+                # Update outputs
+                if output_channel not in self._state.output:
+                    self._state.output[output_channel] = output_value
                 logger.debug('State mirrored.')
 
     def mirror_events(self, events):

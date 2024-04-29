@@ -105,6 +105,13 @@ class BpodBase(object):
             for varname in settings.PYBPOD_VARSNAMES:
                 self.session += ValueMessage(varname, getattr(settings, varname))
 
+        try:
+            from pybpod_gui_plugin_emulator.emulator_gui_client import EmulatorGUIClient
+        except ImportError:
+            self._gui_plugin_emulator_client = None
+        else:
+            self._gui_plugin_emulator_client = EmulatorGUIClient()
+
     #########################################
     ############ PUBLIC METHODS #############
     #########################################
@@ -278,7 +285,6 @@ class BpodBase(object):
             self._emulator.set_state_machine(sma)
             self._emulator.initialize()
             self._emulator.mirror_state(sma.current_state)
-            # TODO: Do the BpodSystem.RefreshGUI equivalent
             self.trial_start_timestamp = self._emulator.matrix_start_time
         else:
             self._bpodcom_run_state_machine()
@@ -288,6 +294,8 @@ class BpodBase(object):
                 else:
                     raise BpodErrorException('Error: The last state machine sent was not acknowledged by the Bpod device.', self)
             self.trial_start_timestamp = self._bpodcom_get_trial_timestamp_start()
+
+        self.__refresh_gui(sma)
 
         if self.bpod_start_timestamp is None:
             self.bpod_start_timestamp = self.trial_start_timestamp
@@ -340,6 +348,8 @@ class BpodBase(object):
 
         if self._emulator:
             self._emulator.mirror_state(None)
+
+        self.__refresh_gui(sma, clear=True)
 
         self.session += EndTrial('The trial ended')
 
@@ -496,6 +506,22 @@ class BpodBase(object):
     def create_session(self):
         return Session()
 
+    def __refresh_gui(self, sma, clear=False):
+        if self._gui_plugin_emulator_client:
+            if clear:
+                iterable = []
+                for ocn in self._hardware.channels.output_channel_names:
+                    if ocn.startswith('PWM') or ocn.startswith('Valve'):
+                        oci = self._hardware.channels.output_channel_names.index(ocn)
+                        iterable.append((oci, 0))
+            else:
+                iterable = sma.output_matrix[sma.current_state]
+            for output_code, output_value in iterable:
+                output_channel_name = self._hardware.channels.output_channel_names[
+                    output_code]
+                self._gui_plugin_emulator_client.send(
+                    output_channel_name, output_value)
+
     def __initialize_input_command_handler(self):
         # Initialize the server to handle commands.
         if self.net_port is None:
@@ -646,6 +672,8 @@ class BpodBase(object):
         elif opcode == 2:  # Handle soft code
             self._session += SoftcodeOccurrence(data)
             self.softcode_handler_function(data)
+
+        self.__refresh_gui(sma, clear=math.isnan(sma.current_state))
 
         return True
 
